@@ -1,0 +1,53 @@
+name: ru_pay_system
+description: Sistema de Pagamento do Restaurante Universitário.
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.8.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  # Banco de dados
+  supabase_flutter: ^2.9.1
+
+  # Gerenciamento de estado
+  provider: ^6.1.5
+
+  # QR Code
+  qr_flutter: ^4.1.0
+
+  # Internacionalização
+  intl: ^0.20.2
+
+  # SVG
+  flutter_svg: ^2.2.0
+
+  # Ícones
+  font_awesome_flutter: ^10.10.0
+
+  # Variáveis de ambiente
+  flutter_dotenv: ^6.0.0
+
+  # Animações
+  lottie: ^3.3.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^5.0.0
+
+flutter:
+
+  uses-material-design: true
+
+  assets:
+    - lib/app/assets/img/
+    - lib/app/assets/icons/
+    - .env
