@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:ru_pay_system/app/services/auth_service.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../reset_password/reset_password_page.dart';
 
 import '../../core/theme/app_colors.dart';
-import '../../services/mock_auth_service.dart';
-import '../../viewmodels/login_viewmodel.dart';
 import '../meal/meal_page.dart';
+import '../register/register_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -14,254 +16,348 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final TextEditingController userController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+
+  bool obscurePassword = true;
+  bool _verificandoReset = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _verificarResetPassword();
+  }
+
+  Future<void> _verificarResetPassword() async {
+    if (_verificandoReset) return;
+
+    _verificandoReset = true;
+
+    final uri = Uri.base;
+
+    if (!uri.queryParameters.containsKey('code')) {
+      return;
+    }
+
+    try {
+      await Supabase.instance.client.auth.exchangeCodeForSession(
+        uri.queryParameters['code']!,
+      );
+
+      if (!mounted) return;
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const ResetPasswordPage()),
+      );
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+  }
 
   @override
   void dispose() {
-    userController.dispose();
+    emailController.dispose();
     passwordController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => LoginViewModel(authService: MockAuthService()),
+    return Scaffold(
+      backgroundColor: Colors.white,
 
-      child: Scaffold(
-        backgroundColor: Colors.white,
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
 
-        body: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            child: SizedBox(
+              width: 380,
 
-              child: SizedBox(
-                width: 380,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
 
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
 
-                  children: [
-                    // LOGO
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
 
-                      child: Align(
-                        alignment: Alignment.centerLeft,
+                      child: Transform.translate(
+                        offset: const Offset(-30, 20),
 
-                        child: Transform.translate(
-                          offset: const Offset(-30, 20),
-
-                          child: Image.asset(
-                            "lib/app/assets/img/Imagem2.png",
-                            width: 250,
-                          ),
+                        child: Image.asset(
+                          "lib/app/assets/img/Imagem2.png",
+                          width: 250,
                         ),
                       ),
                     ),
+                  ),
 
-                    // CAIXA DE LOGIN
-                    Transform.translate(
-                      offset: const Offset(0, -30),
+                  Transform.translate(
+                    offset: const Offset(0, -30),
 
-                      child: Container(
-                        padding: const EdgeInsets.all(18),
+                    child: Container(
+                      padding: const EdgeInsets.all(18),
 
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: AppColors.primary,
-                            width: 2,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: AppColors.primary, width: 2),
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+
+                        children: [
+                          const Text(
+                            "Login",
+                            style: TextStyle(
+                              fontSize: 26,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary,
+                            ),
                           ),
 
-                          borderRadius: BorderRadius.circular(15),
-                        ),
+                          const SizedBox(height: 4),
 
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          const Text(
+                            "Utilize seu e-mail institucional",
+                            style: TextStyle(fontSize: 15),
+                          ),
 
-                          children: [
-                            const Text(
-                              "Entrar com SIGAA",
+                          const SizedBox(height: 25),
 
-                              style: TextStyle(
-                                fontSize: 26,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.primary,
-                              ),
+                          const Text(
+                            "E-mail institucional",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: AppColors.primary,
                             ),
+                          ),
 
-                            const SizedBox(height: 4),
+                          const SizedBox(height: 8),
 
-                            const Text(
-                              "Alunos e professores UFERSA",
+                          TextField(
+                            controller: emailController,
+                            keyboardType: TextInputType.emailAddress,
 
-                              style: TextStyle(fontSize: 15),
-                            ),
+                            decoration: InputDecoration(
+                              hintText: "seuemail@alunos.ufersa.edu.br",
 
-                            const SizedBox(height: 25),
+                              prefixIcon: Padding(
+                                padding: const EdgeInsets.all(10),
 
-                            // USUÁRIO
-                            const Text(
-                              "Usuário",
-
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                                color: AppColors.primary,
-                              ),
-                            ),
-
-                            const SizedBox(height: 8),
-
-                            TextField(
-                              controller: userController,
-
-                              decoration: InputDecoration(
-                                prefixIcon: Padding(
-                                  padding: const EdgeInsets.all(10),
-
-                                  child: Image.asset(
-                                    "lib/app/assets/icons/user.png",
-                                    width: 18,
-                                    height: 18,
-                                  ),
-                                ),
-
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10),
+                                child: Image.asset(
+                                  "lib/app/assets/icons/user.png",
+                                  width: 18,
+                                  height: 18,
                                 ),
                               ),
-                            ),
 
-                            const SizedBox(height: 20),
-
-                            // SENHA
-                            const Text(
-                              "Senha",
-
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                                color: AppColors.primary,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
                               ),
                             ),
+                          ),
 
-                            const SizedBox(height: 8),
+                          const SizedBox(height: 20),
 
-                            TextField(
-                              controller: passwordController,
+                          const Text(
+                            "Senha",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: AppColors.primary,
+                            ),
+                          ),
 
-                              obscureText: true,
+                          const SizedBox(height: 8),
 
-                              decoration: InputDecoration(
-                                prefixIcon: Padding(
-                                  padding: const EdgeInsets.all(10),
+                          TextField(
+                            controller: passwordController,
+                            obscureText: obscurePassword,
 
-                                  child: Image.asset(
-                                    "lib/app/assets/icons/lock.png",
-                                    width: 18,
-                                    height: 18,
-                                  ),
-                                ),
+                            decoration: InputDecoration(
+                              prefixIcon: Padding(
+                                padding: const EdgeInsets.all(10),
 
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10),
+                                child: Image.asset(
+                                  "lib/app/assets/icons/lock.png",
+                                  width: 18,
+                                  height: 18,
                                 ),
                               ),
-                            ),
 
-                            const SizedBox(height: 30),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  obscurePassword
+                                      ? Icons.visibility_off
+                                      : Icons.visibility,
+                                  color: AppColors.primary,
+                                ),
 
-                            // BOTÃO
-                            SizedBox(
-                              width: double.infinity,
-                              height: 50,
-
-                              child: Consumer<LoginViewModel>(
-                                builder: (context, viewModel, child) {
-                                  return ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: AppColors.primary,
-
-                                      disabledBackgroundColor: AppColors.primary
-                                          .withOpacity(0.7),
-
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                    ),
-
-                                    onPressed: viewModel.isLoading
-                                        ? null
-                                        : () async {
-                                            final success = await viewModel
-                                                .login(
-                                                  username: userController.text
-                                                      .trim(),
-                                                  password:
-                                                      passwordController.text,
-                                                );
-
-                                            if (!mounted) return;
-
-                                            if (success) {
-                                              Navigator.pushReplacement(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (_) =>
-                                                      const MealPage(),
-                                                ),
-                                              );
-                                            } else {
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
-                                                SnackBar(
-                                                  content: Text(
-                                                    viewModel.errorMessage ??
-                                                        'Usuário ou senha inválidos.',
-                                                  ),
-                                                ),
-                                              );
-                                            }
-                                          },
-
-                                    child: viewModel.isLoading
-                                        ? const SizedBox(
-                                            width: 24,
-                                            height: 24,
-
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-
-                                              valueColor:
-                                                  AlwaysStoppedAnimation<Color>(
-                                                    Colors.white,
-                                                  ),
-                                            ),
-                                          )
-                                        : const Text(
-                                            "Entrar com SIGAA",
-
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 17,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                  );
+                                onPressed: () {
+                                  setState(() {
+                                    obscurePassword = !obscurePassword;
+                                  });
                                 },
                               ),
+
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
                             ),
-                          ],
-                        ),
+                          ),
+
+                          const SizedBox(height: 8),
+
+                          Align(
+                            alignment: Alignment.centerRight,
+
+                            child: TextButton(
+                              onPressed: () async {
+                                if (emailController.text.trim().isEmpty) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        "Informe seu e-mail institucional.",
+                                      ),
+                                    ),
+                                  );
+                                  return;
+                                }
+
+                                try {
+                                  await AuthService().recuperarSenha(
+                                    emailController.text.trim(),
+                                  );
+
+                                  if (!mounted) return;
+
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        "Enviamos um e-mail para redefinição da senha.",
+                                      ),
+                                    ),
+                                  );
+                                } catch (e) {
+                                  if (!mounted) return;
+
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text(e.toString())),
+                                  );
+                                }
+                              },
+
+                              child: const Text(
+                                "Esqueceu a senha?",
+                                style: TextStyle(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(height: 10),
+
+                          SizedBox(
+                            width: double.infinity,
+                            height: 50,
+
+                            child: OutlinedButton(
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(
+                                  color: AppColors.primary,
+                                  width: 2,
+                                ),
+
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const RegisterPage(),
+                                  ),
+                                );
+                              },
+
+                              child: const Text(
+                                "Criar conta",
+                                style: TextStyle(
+                                  color: AppColors.primary,
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(height: 15),
+
+                          SizedBox(
+                            width: double.infinity,
+                            height: 50,
+
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+
+                              onPressed: () async {
+                                final sucesso = await AuthService().login(
+                                  email: emailController.text.trim(),
+                                  password: passwordController.text,
+                                );
+
+                                if (!mounted) return;
+
+                                if (sucesso) {
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const MealPage(),
+                                    ),
+                                  );
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        "E-mail ou senha inválidos.",
+                                      ),
+                                    ),
+                                  );
+                                }
+                              },
+
+                              child: const Text(
+                                "Entrar",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),

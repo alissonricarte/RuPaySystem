@@ -25,7 +25,7 @@ class LoginViewModel extends ChangeNotifier {
 
     try {
       final success = await authService.login(
-        username: username,
+        email: username,
         password: password,
       );
 
