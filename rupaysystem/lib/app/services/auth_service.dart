@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/student_model.dart';
@@ -34,11 +35,17 @@ class AuthService {
     }
   }
 
+  /// URL para onde o link do e-mail leva o usuário.
+  /// Na web usa a origem atual (qualquer porta funciona).
+  String get _urlRedirecionamento =>
+      kIsWeb ? Uri.base.origin : 'http://localhost:3000';
+
+  /// Envia o e-mail com o link de redefinição de senha.
   Future<void> recuperarSenha(String email) async {
     try {
       await supabase.auth.resetPasswordForEmail(
         email,
-        redirectTo: 'http://localhost:3000',
+        redirectTo: _urlRedirecionamento,
       );
     } on AuthException catch (e) {
       print("MESSAGE: ${e.message}");

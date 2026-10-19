@@ -24,6 +24,13 @@ class ProfileViewModel extends ChangeNotifier {
   XFile? fotoSelecionada;
   Uint8List? fotoBytes;
 
+  /// Indica que o aluno marcou a foto para remoção (aplicada ao salvar).
+  bool removerFoto = false;
+
+  bool get temFoto =>
+      fotoBytes != null ||
+      (!removerFoto && fotoUrl != null && fotoUrl!.isNotEmpty);
+
   // ============================================================
   // USUÁRIO LOGADO
   // ============================================================
@@ -102,6 +109,7 @@ class ProfileViewModel extends ChangeNotifier {
 
       fotoSelecionada = imagem;
       fotoBytes = bytes;
+      removerFoto = false;
 
       debugPrint('====================================');
       debugPrint('FOTO SELECIONADA');
@@ -191,6 +199,8 @@ class ProfileViewModel extends ChangeNotifier {
           userId: currentUser.id,
           bytes: fotoBytes!,
         );
+      } else if (removerFoto) {
+        novaFotoUrl = null;
       }
 
       // ========================================================
@@ -203,6 +213,11 @@ class ProfileViewModel extends ChangeNotifier {
         fotoUrl: novaFotoUrl,
       );
 
+      // Banco já aponta para null; agora apaga o arquivo do storage.
+      if (removerFoto && fotoBytes == null) {
+        await profileService.removerImagemPerfil(currentUser.id);
+      }
+
       // ========================================================
       // 4. ATUALIZA ESTADO
       // ========================================================
@@ -212,6 +227,7 @@ class ProfileViewModel extends ChangeNotifier {
 
       fotoSelecionada = null;
       fotoBytes = null;
+      removerFoto = false;
 
       editandoUsername = false;
 
@@ -250,6 +266,17 @@ class ProfileViewModel extends ChangeNotifier {
 
       rethrow;
     }
+  }
+
+  // ============================================================
+  // MARCAR FOTO PARA REMOÇÃO
+  // ============================================================
+
+  void marcarRemocaoFoto() {
+    fotoSelecionada = null;
+    fotoBytes = null;
+    removerFoto = true;
+    notifyListeners();
   }
 
   // ============================================================

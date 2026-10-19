@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../core/auth_flow.dart';
 import '../login/login_page.dart';
 import '../meal/meal_page.dart';
 import '../reset_password/reset_password_page.dart';
@@ -26,39 +27,23 @@ class _SplashPageState extends State<SplashPage> {
 
     if (!mounted) return;
 
-    final uri = Uri.base;
-    final code = uri.queryParameters['code'];
-
-    if (code != null) {
-      try {
-        await Supabase.instance.client.auth.exchangeCodeForSession(code);
-
-        if (!mounted) return;
-
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const ResetPasswordPage()),
-        );
-
-        return;
-      } catch (e) {
-        print("Erro ao recuperar sessão: $e");
-      }
+    // Usuário chegou pelo link de "esqueci a senha": vai para a redefinição.
+    if (emRecuperacaoSenha) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const ResetPasswordPage()),
+      );
+      return;
     }
 
     final session = Supabase.instance.client.auth.currentSession;
 
-    if (session != null) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const MealPage()),
-      );
-    } else {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const LoginPage()),
-      );
-    }
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) => session != null ? const MealPage() : const LoginPage(),
+      ),
+    );
   }
 
   @override

@@ -57,12 +57,73 @@ class _ProfilePageState extends State<ProfilePage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Informações salvas com sucesso!')),
       );
+      Navigator.pop(context);
     } catch (e) {
       if (!mounted) return;
 
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Erro ao salvar informações: $e')));
+    }
+  }
+
+  // ============================================================
+  // OPÇÕES DA FOTO (GALERIA / REMOVER)
+  // ============================================================
+
+  Future<void> _opcoesFoto(ProfileViewModel viewModel) async {
+    final acao = await showModalBottomSheet<String>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(
+                Icons.photo_library,
+                color: AppColors.primary,
+              ),
+              title: const Text('Escolher da galeria'),
+              onTap: () => Navigator.pop(ctx, 'galeria'),
+            ),
+            if (viewModel.temFoto)
+              ListTile(
+                leading: const Icon(Icons.delete_outline, color: Colors.red),
+                title: const Text(
+                  'Remover foto',
+                  style: TextStyle(color: Colors.red),
+                ),
+                onTap: () => Navigator.pop(ctx, 'remover'),
+              ),
+          ],
+        ),
+      ),
+    );
+
+    if (!mounted || acao == null) return;
+
+    if (acao == 'remover') {
+      viewModel.marcarRemocaoFoto();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Foto removida. Toque em "Salvar informações" para confirmar.',
+          ),
+        ),
+      );
+
+      return;
+    }
+
+    try {
+      await viewModel.selecionarFoto();
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Erro ao selecionar foto: $e')));
     }
   }
 
@@ -200,7 +261,8 @@ class _ProfilePageState extends State<ProfilePage> {
                                   height: 140,
                                   fit: BoxFit.cover,
                                 )
-                              : viewModel.fotoUrl != null &&
+                              : !viewModel.removerFoto &&
+                                    viewModel.fotoUrl != null &&
                                     viewModel.fotoUrl!.isNotEmpty
                               ? Image.network(
                                   viewModel.fotoUrl!,
@@ -243,21 +305,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
                           onPressed: viewModel.salvando
                               ? null
-                              : () async {
-                                  try {
-                                    await viewModel.selecionarFoto();
-                                  } catch (e) {
-                                    if (!context.mounted) return;
-
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          'Erro ao selecionar foto: $e',
-                                        ),
-                                      ),
-                                    );
-                                  }
-                                },
+                              : () => _opcoesFoto(viewModel),
 
                           icon: const Icon(
                             Icons.camera_alt,

@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ru_pay_system/app/services/auth_service.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-
-import '../reset_password/reset_password_page.dart';
-
+import '../forgot_password/forgot_password_page.dart';
 import '../../core/theme/app_colors.dart';
 import '../meal/meal_page.dart';
 import '../register/register_page.dart';
@@ -20,40 +17,6 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController passwordController = TextEditingController();
 
   bool obscurePassword = true;
-  bool _verificandoReset = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _verificarResetPassword();
-  }
-
-  Future<void> _verificarResetPassword() async {
-    if (_verificandoReset) return;
-
-    _verificandoReset = true;
-
-    final uri = Uri.base;
-
-    if (!uri.queryParameters.containsKey('code')) {
-      return;
-    }
-
-    try {
-      await Supabase.instance.client.auth.exchangeCodeForSession(
-        uri.queryParameters['code']!,
-      );
-
-      if (!mounted) return;
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const ResetPasswordPage()),
-      );
-    } catch (e) {
-      debugPrint(e.toString());
-    }
-  }
 
   @override
   void dispose() {
@@ -219,39 +182,13 @@ class _LoginPageState extends State<LoginPage> {
                             alignment: Alignment.centerRight,
 
                             child: TextButton(
-                              onPressed: () async {
-                                if (emailController.text.trim().isEmpty) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        "Informe seu e-mail institucional.",
-                                      ),
-                                    ),
-                                  );
-                                  return;
-                                }
-
-                                try {
-                                  await AuthService().recuperarSenha(
-                                    emailController.text.trim(),
-                                  );
-
-                                  if (!mounted) return;
-
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        "Enviamos um e-mail para redefinição da senha.",
-                                      ),
-                                    ),
-                                  );
-                                } catch (e) {
-                                  if (!mounted) return;
-
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text(e.toString())),
-                                  );
-                                }
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const ForgotPasswordPage(),
+                                  ),
+                                );
                               },
 
                               child: const Text(
